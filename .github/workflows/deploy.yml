@@ -1,57 +1,82 @@
-name: Terraform AWS Infrastructure Deployment
+name: Terraform Deployment
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+
+permissions:
+  contents: read      
 
 jobs:
-  terraform:
-    name: Terraform
+
+  terraform-plan:
     runs-on: ubuntu-latest
 
     defaults:
       run:
         working-directory: terraform
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: us-east-1
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+      - run: terraform validate
+      - run: terraform plan -out=tfplan
+      - name: Show Terraform Plan
+        run: terraform show tfplan
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
+
+  terraform-apply:
+
+    needs: terraform-plan
+
+    runs-on: ubuntu-latest
+
+    environment: production
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.3
 
-      - name: Verify Terraform Version
-        run: terraform version
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-      - name: Terraform Init
-        run: terraform init
+      - uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: terraform
 
-      - name: Terraform Format Check
-        run: terraform fmt -check
+      - run: terraform init
 
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplan
-
-      - name: Terraform Output
-        run: terraform output
+      - run: terraform apply -auto-approve tfplan
