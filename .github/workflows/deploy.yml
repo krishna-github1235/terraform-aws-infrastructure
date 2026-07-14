@@ -36,7 +36,8 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
       - run: terraform validate
-      - run: terraform plan -out=tfplan
+      - name: terraform plan
+        run: terraform plan -var-file=terraform.tfvars -input=false -out=tfplan
       - name: Show Terraform Plan
         run: terraform show tfplan
 
@@ -78,5 +79,5 @@ jobs:
           path: terraform
 
       - run: terraform init
-
-      - run: terraform apply -auto-approve tfplan
+      - name: Terraform Apply    
+        run: terraform apply -input=false -auto-approve tfplan
