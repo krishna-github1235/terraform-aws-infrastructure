@@ -10,6 +10,9 @@ crash.log
 *.tfvars
 *.tfvars.json
 
+# Allow this specific file
+!terraform/terraform.tfvars
+
 # Lock file (optional)
 .terraform.lock.hcl
 **/.terraform.lock.hcl
