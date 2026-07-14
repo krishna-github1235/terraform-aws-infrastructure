@@ -1,0 +1,22 @@
+# Terraform
+**/.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfplan
+
+# Variable files
+*.tfvars
+*.tfvars.json
+
+# Lock file (optional)
+.terraform.lock.hcl
+**/.terraform.lock.hcl
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
