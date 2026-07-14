@@ -37,11 +37,7 @@ jobs:
         run: terraform fmt -check -recursive
       - run: terraform validate
       - name: terraform plan
-<<<<<<< HEAD
-        run: terraform plan -var-file=terraform.tfvars -input=false -out=tfplan
-=======
         run: terraform plan -input=false -var-file=terraform.tfvars -out=tfplan
->>>>>>> 417bfa70a897d48ab8872c3600cbdd1f46a55306
       - name: Show Terraform Plan
         run: terraform show tfplan
 
